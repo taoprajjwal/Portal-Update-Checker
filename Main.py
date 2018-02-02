@@ -291,6 +291,18 @@ class Status(object):
     def changetextview(self,site,status):
         self.textBrowser.append("College Name: {} \n Status: {} \n".format(site,status))
 
+def initdb():
+    conn = sqlite3.connect("Database.db")
+    c = conn.cursor()
+    c.execute("SELECT name FROM `sqlite_master` WHERE type='table'")
+    s = c.fetchall()
+    if ('LIST',) not in s:
+        c.execute('CREATE TABLE `LIST` ( `Name` TEXT NOT NULL, `Url` TEXT NOT NULL, PRIMARY KEY(`Name`) )')
+    if ('USER',) not in s:
+        c.execute(
+            'CREATE TABLE `USER` ( `email` TEXT NOT NULL, `password` TEXT NOT NULL, PRIMARY KEY(`email`,`password`) )')
+    conn.commit()
+
 def databse_open():
     conn=sqlite3.connect("Database.db")
     c=conn.cursor()
@@ -351,6 +363,7 @@ def get_decision(url):
 
 if __name__ == "__main__":
 
+    initdb()
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
