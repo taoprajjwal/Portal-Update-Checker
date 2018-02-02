@@ -27,7 +27,7 @@ class Ui_MainWindow(object):
         self.Login.clicked.connect(lambda :self.LoginCredShow(MainWindow))
         self.gridLayout.addWidget(self.Login, 0, 0, 1, 1)
         spacerItem = QtWidgets.QSpacerItem(238, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        self.gridLayout.addIte(spacerItem, 0, 1, 1, 1)
+        self.gridLayout.addItem(spacerItem, 0, 1, 1, 1)
         self.AddUni = QtWidgets.QPushButton(self.widget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
@@ -146,7 +146,6 @@ class AddUni(object):
         self.Password_label.setSizePolicy(sizePolicy)
         self.Password_label.setObjectName("Password_label")
         self.Password_edit = QtWidgets.QLineEdit(self.splitter_2)
-        self.Password_edit.setEchoMode(QtWidgets.QLineEdit.PasswordEchoOnEdit)
         self.Password_edit.setObjectName("Password_edit")
         self.textBrowser = QtWidgets.QTextBrowser(Dialog)
         self.textBrowser.setGeometry(QtCore.QRect(30, 150, 461, 151))
@@ -176,7 +175,7 @@ class AddUni(object):
 
     def addsite(self,Dialog):
         if re.match('.+apply/update',self.Password_edit.text()) == None:
-            QtWidgets.QMessageBox.question(Dialog,'ERROR',"Your URL does not end with `/apply/update. Please update the url with an /apply/update at the last",QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.question(Dialog,'ERROR',"Your URL does not end with '/apply/update'. Please update the url with an '/apply/update' at the last",QtWidgets.QMessageBox.Ok)
         else:
             cursor=databse_open()
             cursor.execute("INSERT INTO `LIST` VALUES (?,?) ", (self.Email_edit.text(), self.Password_edit.text()))
@@ -259,7 +258,7 @@ class Status(object):
         self.NameCombo.addItems(self.sitelist)
         self.SubmitButton = QtWidgets.QPushButton(self.splitter)
         self.SubmitButton.setObjectName("SubmitButton")
-        self.SubmitButton.clicked.connect(lambda: self.showresult(self.NameCombo.currentText(),Dialog))
+        self.SubmitButton.clicked.connect(lambda: self.showresult(self.NameCombo.currentText()))
 
         self.textBrowser = QtWidgets.QTextBrowser(Dialog)
         self.textBrowser.setGeometry(QtCore.QRect(50, 140, 701, 421))
@@ -336,7 +335,7 @@ def get_decision(url):
 
     udata=userdata()[0]
 
-    br = RoboBrowser(parser="lxml")
+    br = RoboBrowser()
     br.open(url)
     form = br.get_form()
     form['email'] = udata[0]
