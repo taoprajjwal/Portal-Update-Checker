@@ -5,6 +5,19 @@ import re
 from robobrowser import RoboBrowser
 
 
+class DecisionThread(QtCore.QThread):
+    decisionsignal = QtCore.pyqtSignal(str, str)
+
+    def __init__(self, sitedict):
+        super(DecisionThread, self).__init__()
+        self.sitedict = sitedict
+
+    def run(self):
+        for c, i in enumerate(self.sitedict.values()):
+            decision = get_decision(i)
+            self.decisionsignal.emit(list(self.sitedict.keys())[c], decision)
+
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -24,7 +37,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.Login.sizePolicy().hasHeightForWidth())
         self.Login.setSizePolicy(sizePolicy)
         self.Login.setObjectName("Login")
-        self.Login.clicked.connect(lambda :self.LoginCredShow(MainWindow))
+        self.Login.clicked.connect(lambda: self.LoginCredShow(MainWindow))
         self.gridLayout.addWidget(self.Login, 0, 0, 1, 1)
         spacerItem = QtWidgets.QSpacerItem(238, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem, 0, 1, 1, 1)
@@ -48,7 +61,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.Result.sizePolicy().hasHeightForWidth())
         self.Result.setSizePolicy(sizePolicy)
         self.Result.setObjectName("Result")
-        self.Result.clicked.connect(lambda :self.StatusShow(MainWindow))
+        self.Result.clicked.connect(lambda: self.StatusShow(MainWindow))
         self.gridLayout.addWidget(self.Result, 2, 0, 1, 1)
         spacerItem3 = QtWidgets.QSpacerItem(238, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem3, 2, 1, 1, 1)
@@ -59,7 +72,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.Nothing.sizePolicy().hasHeightForWidth())
         self.Nothing.setSizePolicy(sizePolicy)
         self.Nothing.setObjectName("Nothing")
-        self.Nothing.clicked.connect(lambda : self.deleteshow(MainWindow))
+        self.Nothing.clicked.connect(lambda: self.deleteshow(MainWindow))
         self.gridLayout.addWidget(self.Nothing, 2, 2, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -82,39 +95,40 @@ class Ui_MainWindow(object):
         self.Nothing.setText(_translate("MainWindow", "DELETE"))
 
     def AddUniShow(self):
-        addunidialog=QtWidgets.QDialog()
-        s=AddUni()
+        addunidialog = QtWidgets.QDialog()
+        s = AddUni()
         s.setupUi(addunidialog)
         addunidialog.exec_()
 
-    def LoginCredShow(self,MainW):
+    def LoginCredShow(self, MainW):
         ud = userdata()
         if ud == []:
-            logincreddialog=QtWidgets.QDialog()
-            s=LoginCred()
+            logincreddialog = QtWidgets.QDialog()
+            s = LoginCred()
             s.setupUi(logincreddialog)
             logincreddialog.exec_()
 
         else:
-            email=ud[0][0]
-            print(email)
-            passw=ud[0][1]
-            print(passw)
-            QtWidgets.QMessageBox.question(MainW,'ERROR',"There's already a login credential. The email is `{}` and  the password is `{}`. If this is incorrect, press the delete button from the main window.".format(email,passw),QtWidgets.QMessageBox.Ok)
+            email = ud[0][0]
+            passw = ud[0][1]
+            QtWidgets.QMessageBox.question(MainW, 'ERROR',
+                                           "There's already a login credential. The email is `{}` and  the password is `{}`. If this is incorrect, press the delete button from the main window.".format(
+                                               email, passw), QtWidgets.QMessageBox.Ok)
 
-
-    def StatusShow(self,MainW):
+    def StatusShow(self, MainW):
         if userdata() == []:
-            QtWidgets.QMessageBox.question(MainW,'ERROR',"No User Record foud. Add login credential before checking status.",QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.question(MainW, 'ERROR',
+                                           "No User Record foud. Add login credential before checking status.",
+                                           QtWidgets.QMessageBox.Ok)
         else:
-            statusdialog=QtWidgets.QDialog()
-            s=Status()
+            statusdialog = QtWidgets.QDialog()
+            s = Status()
             s.setupUi(statusdialog)
             statusdialog.exec_()
 
-    def deleteshow(self,MainW):
+    def deleteshow(self, MainW):
         deleteuser()
-        QtWidgets.QMessageBox.question(MainW, 'DONE','Previous login credential deleted', QtWidgets.QMessageBox.Ok)
+        QtWidgets.QMessageBox.question(MainW, 'DONE', 'Previous login credential deleted', QtWidgets.QMessageBox.Ok)
 
 
 class AddUni(object):
@@ -124,7 +138,7 @@ class AddUni(object):
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
         self.buttonBox.setGeometry(QtCore.QRect(150, 360, 341, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.splitter = QtWidgets.QSplitter(Dialog)
         self.splitter.setGeometry(QtCore.QRect(20, 40, 361, 33))
@@ -152,7 +166,7 @@ class AddUni(object):
         self.textBrowser.setObjectName("textBrowser")
 
         self.retranslateUi(Dialog)
-        self.buttonBox.accepted.connect(lambda :self.addsite(Dialog))
+        self.buttonBox.accepted.connect(lambda: self.addsite(Dialog))
         self.buttonBox.rejected.connect(Dialog.reject)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
@@ -161,30 +175,38 @@ class AddUni(object):
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
         self.Email_label.setText(_translate("Dialog", "Uni Name"))
         self.Password_label.setText(_translate("Dialog", "Url"))
-        self.textBrowser.setHtml(_translate("Dialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Noto Sans\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Please make sure that your URL ends with &quot;/apply/update.&quot; </p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">For example, the login page for UChicago is &quot;https://prospects.uchicago.edu/account/login.&quot;</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"> Now, you should replace the &quot;/account/login&quot; part with &quot;/apply/update.&quot; </p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">So, the complete URL is &quot;https://prospects.uchicago.edu/apply/update</p></body></html>"))
+        self.textBrowser.setHtml(_translate("Dialog",
+                                            "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+                                            "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+                                            "p, li { white-space: pre-wrap; }\n"
+                                            "</style></head><body style=\" font-family:\'Noto Sans\'; font-size:10pt; font-weight:400; font-style:normal;\">\n"
+                                            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Please make sure that your URL ends with &quot;/apply/update.&quot; </p>\n"
+                                            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+                                            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">For example, the login page for UChicago is &quot;https://prospects.uchicago.edu/account/login.&quot;</p>\n"
+                                            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+                                            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"> Now, you should replace the &quot;/account/login&quot; part with &quot;/apply/update.&quot; </p>\n"
+                                            "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+                                            "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">So, the complete URL is &quot;https://prospects.uchicago.edu/apply/update</p></body></html>"))
 
-    def addsite(self,Dialog):
-        if re.match('.+apply/update',self.Password_edit.text()) == None:
-            QtWidgets.QMessageBox.question(Dialog,'ERROR',"Your URL does not end with '/apply/update'. Please update the url with an '/apply/update' at the last",QtWidgets.QMessageBox.Ok)
+    def addsite(self, Dialog):
+        if re.match('.+apply/update', self.Password_edit.text()) == None:
+            QtWidgets.QMessageBox.question(Dialog, 'ERROR',
+                                           "Your URL does not end with '/apply/update'. Please update the url with an '/apply/update' at the last",
+                                           QtWidgets.QMessageBox.Ok)
+        elif bool(
+                self.Password_edit.text().startswith("http") or self.Password_edit.text().startswith("https")) == False:
+            QtWidgets.QMessageBox.question(Dialog, 'ERROR',
+                                           "Not a valid URL. Make sure your url starts with an 'http://' or 'https://.",
+                                           QtWidgets.QMessageBox.Ok)
         else:
-            cursor=databse_open()
+            cursor = databse_open()
             cursor.execute("INSERT INTO `LIST` VALUES (?,?) ", (self.Email_edit.text(), self.Password_edit.text()))
             cursor.connection.commit()
             cursor.connection.close()
             Dialog.accept()
 
-class LoginCred(object):
 
+class LoginCred(object):
 
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
@@ -192,7 +214,7 @@ class LoginCred(object):
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
         self.buttonBox.setGeometry(QtCore.QRect(30, 240, 341, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.splitter = QtWidgets.QSplitter(Dialog)
         self.splitter.setGeometry(QtCore.QRect(20, 40, 361, 33))
@@ -213,7 +235,7 @@ class LoginCred(object):
         self.Password_edit.setObjectName("Password_edit")
 
         self.retranslateUi(Dialog)
-        self.buttonBox.accepted.connect(lambda : self.addlogin(Dialog))
+        self.buttonBox.accepted.connect(lambda: self.addlogin(Dialog))
         self.buttonBox.rejected.connect(Dialog.reject)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
@@ -223,14 +245,12 @@ class LoginCred(object):
         self.Email_label.setText(_translate("Dialog", "Email"))
         self.Password_label.setText(_translate("Dialog", "Password"))
 
-
-    def addlogin(self,Dialog):
-        c=databse_open()
-        c.execute('INSERT INTO `USER` VALUES (?,?)', (self.Email_edit.text(),self.Password_edit.text()))
+    def addlogin(self, Dialog):
+        c = databse_open()
+        c.execute('INSERT INTO `USER` VALUES (?,?)', (self.Email_edit.text(), self.Password_edit.text()))
         c.connection.commit()
         c.connection.close()
         return Dialog.accept()
-
 
 
 class Status(object):
@@ -240,7 +260,7 @@ class Status(object):
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
         self.buttonBox.setGeometry(QtCore.QRect(570, 580, 341, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.splitter = QtWidgets.QSplitter(Dialog)
         self.splitter.setGeometry(QtCore.QRect(60, 80, 591, 35))
@@ -250,8 +270,8 @@ class Status(object):
         self.label.setObjectName("label")
         self.NameCombo = QtWidgets.QComboBox(self.splitter)
         self.NameCombo.setObjectName("NameCombo")
-        self.sitedict=sitelistasdict()
-        self.sitelist=['All']
+        self.sitedict = sitelistasdict()
+        self.sitelist = ['All']
         for i in self.sitedict.keys():
             self.sitelist.append(i)
         print(self.sitelist)
@@ -275,20 +295,20 @@ class Status(object):
         self.label.setText(_translate("Dialog", "Uni Name"))
         self.SubmitButton.setText(_translate("Dialog", "Submit"))
 
-    def showresult(self,collegename):
+    def showresult(self, collegename):
         if collegename == "All":
-            count = 0
-            for i in self.sitedict.values():
-                dec=get_decision(i)
-                count=count+1
-                print(count)
-                self.changetextview(self.sitelist[count],dec)
-        else:
-            dec=get_decision(self.sitedict[collegename])
-            self.changetextview(collegename,dec)
 
-    def changetextview(self,site,status):
-        self.textBrowser.append("College Name: {} \n Status: {} \n".format(site,status))
+            self.thread=DecisionThread(self.sitedict)
+            self.thread.decisionsignal.connect(self.changetextview)
+            self.thread.start()
+
+        else:
+            dec = get_decision(self.sitedict[collegename])
+            self.changetextview(collegename, dec)
+
+    def changetextview(self, site, status):
+        self.textBrowser.append("College Name: {} \n Status: {} \n".format(site, status))
+
 
 def initdb():
     conn = sqlite3.connect("Database.db")
@@ -302,48 +322,52 @@ def initdb():
             'CREATE TABLE `USER` ( `email` TEXT NOT NULL, `password` TEXT NOT NULL, PRIMARY KEY(`email`,`password`) )')
     conn.commit()
 
+
 def databse_open():
-    conn=sqlite3.connect("Database.db")
-    c=conn.cursor()
+    conn = sqlite3.connect("Database.db")
+    c = conn.cursor()
     return c
+
 
 def userdata():
     c = databse_open()
     c.execute('SELECT * FROM `USER`')
-    s=c.fetchall()
+    s = c.fetchall()
     return s
+
 
 def sitelist():
-    c=databse_open()
+    c = databse_open()
     c.execute('SELECT * FROM `LIST`')
-    s=c.fetchall()
+    s = c.fetchall()
     return s
 
+
 def sitelistasdict():
-    list=sitelist()
-    dic={}
+    list = sitelist()
+    dic = {}
     for row in list:
-        dic[row[0]]=row[1]
+        dic[row[0]] = row[1]
     return dic
 
+
 def deleteuser():
-    c=databse_open()
+    c = databse_open()
     c.execute('DELETE FROM `USER`')
     c.connection.commit()
 
+
 def get_decision(url):
-
-    udata=userdata()[0]
-
+    udata = userdata()[0]
     br = RoboBrowser()
     br.open(url)
     form = br.get_form()
     form['email'] = udata[0]
     form['password'] = udata[1]
     br.submit_form(form)
-    classes=[]
+    classes = []
     for clas in br.find_all('p'):
-        classname=clas.get('class')
+        classname = clas.get('class')
         if classname == None:
             pass
         else:
@@ -358,10 +382,7 @@ def get_decision(url):
         return "Unsure...either your link is incorrect or the portal is different. Please try again."
 
 
-
-
 if __name__ == "__main__":
-
     initdb()
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
